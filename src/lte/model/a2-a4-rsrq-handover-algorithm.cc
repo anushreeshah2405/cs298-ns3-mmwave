@@ -32,9 +32,6 @@
 
 #include "CandidateBaseStations.h"
 
-// TODO include real candidate base station values
-std::vector<int> CandidateBaseStations::stationsList = {1, 2, 3, 4, 5};
-
 namespace ns3
 {
 
@@ -180,7 +177,7 @@ void
 A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRsrq)
 {
     // TODO make real use of the candidates
-    std::cout << "The number of candidates is: " << CandidateBaseStations::getStationsList().size() << std::endl;
+    // std::cout << "The number of candidates is: " << CandidateBaseStations::stationsList.size() << std::endl;
 
     NS_LOG_FUNCTION(this << rnti << (uint16_t)servingCellRsrq);
 

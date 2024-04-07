@@ -27,6 +27,8 @@
 #include "ns3/network-module.h"
 #include "ns3/point-to-point-module.h"
 
+#include "../model/CandidateBaseStations.h"
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("LenaX2HandoverMeasures");
@@ -108,13 +110,13 @@ main(int argc, char* argv[])
     // LogComponentEnable ("A3RsrpHandoverAlgorithm", logLevel);
 
     uint16_t numberOfUes = 1;
-    uint16_t numberOfEnbs = 6;
+    uint16_t numberOfEnbs = 26;
     uint16_t numBearersPerUe = 0;
     double distance = 500.0;                                        // m
     double yForUe = 500.0;                                          // m
     double speed = 5;                                              // m/s
     // double simTime = (double)(numberOfEnbs + 1) * distance / speed; // 1500 m / 20 m/s = 75 secs
-    double simTime = 35;  // s
+    double simTime = 265;  // s
     double enbTxPowerDbm = 46.0;
 
     // change some default attributes so that they are reasonable for
@@ -203,11 +205,9 @@ main(int argc, char* argv[])
     // }
 
     // base station locations ////////////////////////////////////////////////////////////
-    enbPositionAlloc->Add(Vector(distance, distance * 4, 0));
-    enbPositionAlloc->Add(Vector(0, distance * 2, 0));
-    enbPositionAlloc->Add(Vector(distance * 2, distance * 3, 0));
-    enbPositionAlloc->Add(Vector(distance * 2, 0, 0));
-    enbPositionAlloc->Add(Vector(distance * 4, distance * 2, 0));
+    for (const auto& baseStationLocation : CandidateBaseStations::stationsList) {
+        enbPositionAlloc->Add(Vector(baseStationLocation.first, baseStationLocation.second, 0));
+    }
 
     MobilityHelper enbMobility;
     enbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -223,13 +223,11 @@ main(int argc, char* argv[])
     
     // vehicle locations ////////////////////////////////////////////////////////////
     Ptr<WaypointMobilityModel> waypointMobility = ueNodes.Get(0)->GetObject<WaypointMobilityModel>();
-    waypointMobility->AddWaypoint(Waypoint(Seconds(0), Vector(0, distance * 3, 0)));
-    waypointMobility->AddWaypoint(Waypoint(Seconds(5), Vector(distance, distance * 3, 0)));
-    waypointMobility->AddWaypoint(Waypoint(Seconds(10), Vector(distance, distance * 2, 0)));
-    waypointMobility->AddWaypoint(Waypoint(Seconds(15), Vector(distance, distance, 0)));
-    waypointMobility->AddWaypoint(Waypoint(Seconds(20), Vector(distance * 2, distance, 0)));
-    waypointMobility->AddWaypoint(Waypoint(Seconds(25), Vector(distance * 2, distance * 2, 0)));
-    waypointMobility->AddWaypoint(Waypoint(Seconds(30), Vector(distance * 3, distance * 2, 0)));
+    int s = 0;
+    for (const auto& vehiclePosition : CandidateBaseStations::vehiclePositions) {
+        waypointMobility->AddWaypoint(Waypoint(Seconds(s), Vector(vehiclePosition.first, vehiclePosition.second, 0)));
+        s += 5;
+    }
     
 
     // Install LTE Devices in eNB and UEs
