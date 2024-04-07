@@ -94,7 +94,7 @@ main(int argc, char* argv[])
 {
     // LogLevel logLevel = (LogLevel)(LOG_PREFIX_ALL | LOG_LEVEL_ALL);
 
-    // LogComponentEnable ("LteHelper", logLevel);
+    LogComponentEnable ("LteHelper", LOG_LEVEL_INFO);
     // LogComponentEnable ("EpcHelper", logLevel);
     // LogComponentEnable ("EpcEnbApplication", logLevel);
     // LogComponentEnable ("EpcX2", logLevel);
@@ -104,11 +104,11 @@ main(int argc, char* argv[])
     // LogComponentEnable ("LteEnbNetDevice", logLevel);
     // LogComponentEnable ("LteUeRrc", logLevel);
     // LogComponentEnable ("LteUeNetDevice", logLevel);
-    // LogComponentEnable ("A2A4RsrqHandoverAlgorithm", logLevel);
+    LogComponentEnable ("A2A4RsrqHandoverAlgorithm", LOG_LEVEL_INFO);
     // LogComponentEnable ("A3RsrpHandoverAlgorithm", logLevel);
 
     uint16_t numberOfUes = 1;
-    uint16_t numberOfEnbs = 2;
+    uint16_t numberOfEnbs = 3;
     uint16_t numBearersPerUe = 0;
     double distance = 500.0;                                        // m
     double yForUe = 500.0;                                          // m
@@ -195,11 +195,16 @@ main(int argc, char* argv[])
 
     // Install Mobility Model in eNB
     Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator>();
-    for (uint16_t i = 0; i < numberOfEnbs; i++)
-    {
-        Vector enbPosition(distance * (i + 1), distance, 0);
-        enbPositionAlloc->Add(enbPosition);
-    }
+    // for (uint16_t i = 0; i < numberOfEnbs; i++)
+    // {
+    //     Vector enbPosition(distance * (i + 1), distance, 0);
+    //     enbPositionAlloc->Add(enbPosition);
+    // }
+
+    enbPositionAlloc->Add(Vector(distance, distance, 0)); // Position of eNB 1
+    enbPositionAlloc->Add(Vector(distance * 2, 0, 0)); // Position of eNB 2
+    enbPositionAlloc->Add(Vector(distance * 3, distance, 0)); // Position of eNB 3
+
     MobilityHelper enbMobility;
     enbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     enbMobility.SetPositionAllocator(enbPositionAlloc);
@@ -209,6 +214,7 @@ main(int argc, char* argv[])
     MobilityHelper ueMobility;
     ueMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
     ueMobility.Install(ueNodes);
+
     ueNodes.Get(0)->GetObject<MobilityModel>()->SetPosition(Vector(0, yForUe, 0));
     ueNodes.Get(0)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(Vector(speed, 0, 0));
 
