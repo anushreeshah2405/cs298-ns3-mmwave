@@ -30,6 +30,11 @@
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
 
+#include "CandidateBaseStations.h"
+
+// TODO include real candidate base station values
+std::vector<int> CandidateBaseStations::stationsList = {1, 2, 3, 4, 5};
+
 namespace ns3
 {
 
@@ -174,6 +179,9 @@ A2A4RsrqHandoverAlgorithm::DoReportUeMeas(uint16_t rnti, LteRrcSap::MeasResults 
 void
 A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRsrq)
 {
+    // TODO make real use of the candidates
+    std::cout << "The number of candidates is: " << CandidateBaseStations::getStationsList().size() << std::endl;
+
     NS_LOG_FUNCTION(this << rnti << (uint16_t)servingCellRsrq);
 
     MeasurementTable_t::iterator it1;
