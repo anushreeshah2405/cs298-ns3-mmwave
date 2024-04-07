@@ -201,6 +201,7 @@ main(int argc, char* argv[])
     //     enbPositionAlloc->Add(enbPosition);
     // }
 
+    // base station locations ////////////////////////////////////////////////////////////
     enbPositionAlloc->Add(Vector(distance, distance, 0)); // Position of eNB 1
     enbPositionAlloc->Add(Vector(distance * 2, 0, 0)); // Position of eNB 2
     enbPositionAlloc->Add(Vector(distance * 3, distance, 0)); // Position of eNB 3
@@ -212,11 +213,17 @@ main(int argc, char* argv[])
 
     // Install Mobility Model in UE
     MobilityHelper ueMobility;
-    ueMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+    ueMobility.SetMobilityModel("ns3::WaypointMobilityModel");
     ueMobility.Install(ueNodes);
-
+    
     ueNodes.Get(0)->GetObject<MobilityModel>()->SetPosition(Vector(0, yForUe, 0));
-    ueNodes.Get(0)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(Vector(speed, 0, 0));
+    
+    // vehicle locations ////////////////////////////////////////////////////////////
+    Ptr<WaypointMobilityModel> waypointMobility = ueNodes.Get(0)->GetObject<WaypointMobilityModel>();
+    waypointMobility->AddWaypoint(Waypoint(Seconds(0), Vector(0, distance, 0))); // 0
+    waypointMobility->AddWaypoint(Waypoint(Seconds(25), Vector(distance, distance, 0))); // 25
+    waypointMobility->AddWaypoint(Waypoint(Seconds(50), Vector(distance * 2, distance, 0))); // 50
+    waypointMobility->AddWaypoint(Waypoint(Seconds(75), Vector(distance * 3, distance, 0))); // 75
 
     // Install LTE Devices in eNB and UEs
     Config::SetDefault("ns3::LteEnbPhy::TxPower", DoubleValue(enbTxPowerDbm));
