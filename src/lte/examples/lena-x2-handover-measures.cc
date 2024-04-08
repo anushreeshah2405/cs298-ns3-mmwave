@@ -205,8 +205,8 @@ main(int argc, char* argv[])
     // }
 
     // base station locations ////////////////////////////////////////////////////////////
-    for (const auto& baseStationLocation : CandidateBaseStations::stationsList) {
-        enbPositionAlloc->Add(Vector(baseStationLocation.first, baseStationLocation.second, 0));
+    for (const auto& station : CandidateBaseStations::stationsMap) {
+        enbPositionAlloc->Add(Vector(station.second[0], station.second[1], 0));
     }
 
     MobilityHelper enbMobility;
