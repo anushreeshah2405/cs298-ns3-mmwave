@@ -110,13 +110,13 @@ main(int argc, char* argv[])
     // LogComponentEnable ("A3RsrpHandoverAlgorithm", logLevel);
 
     uint16_t numberOfUes = 1;
-    uint16_t numberOfEnbs = 26;
+    uint16_t numberOfEnbs = 51;
     uint16_t numBearersPerUe = 0;
     double distance = 500.0;                                        // m
     double yForUe = 500.0;                                          // m
     double speed = 5;                                              // m/s
     // double simTime = (double)(numberOfEnbs + 1) * distance / speed; // 1500 m / 20 m/s = 75 secs
-    double simTime = 265;  // s
+    double simTime = 60;  // s
     double enbTxPowerDbm = 46.0;
 
     // change some default attributes so that they are reasonable for
@@ -223,10 +223,9 @@ main(int argc, char* argv[])
     
     // vehicle locations ////////////////////////////////////////////////////////////
     Ptr<WaypointMobilityModel> waypointMobility = ueNodes.Get(0)->GetObject<WaypointMobilityModel>();
-    int s = 0;
-    for (const auto& vehiclePosition : CandidateBaseStations::vehiclePositions) {
-        waypointMobility->AddWaypoint(Waypoint(Seconds(s), Vector(vehiclePosition.first, vehiclePosition.second, 0)));
-        s += 5;
+    
+    for (const auto& vehiclePositionWithTime : CandidateBaseStations::vehiclePositions) {
+        waypointMobility->AddWaypoint(Waypoint(Seconds(vehiclePositionWithTime.first), Vector(vehiclePositionWithTime.second.first, vehiclePositionWithTime.second.second, 0)));
     }
     
 
