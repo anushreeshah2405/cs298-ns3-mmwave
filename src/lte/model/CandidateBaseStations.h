@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <utility>
 #include <string>
 
@@ -68,7 +69,7 @@ static inline std::unordered_map<int, int> stations = {
 
 // base stations
 // (#, (x, y))
-static inline std::unordered_map<int, std::vector<double>> stationsMap = {
+static inline std::map<int, std::pair<double, double>> stationsMap = {
     {1,{37387.81048,54707.86855}},
     {2,{30436.90157,60078.66831}},
     {3,{41937.90013,66306.08252}},
@@ -124,7 +125,7 @@ static inline std::unordered_map<int, std::vector<double>> stationsMap = {
 
 // vehicle positions
 // (t, (x, y))
-static inline std::vector<std::pair<int, std::pair<double, double>>> vehiclePositions = {
+static inline std::map<int, std::pair<double, double>> vehiclePositions = {
     {0, {63018.48197,35030.63959}},
     {1, {62938.84084,35092.51904}},
     {2, {62747.47293,35242.63398}},
