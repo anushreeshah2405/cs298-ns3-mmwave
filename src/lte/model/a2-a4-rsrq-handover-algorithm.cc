@@ -25,6 +25,14 @@
  * - Budiarto Herman <budiarto.herman@magister.fi>
  */
 
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #include "a2-a4-rsrq-handover-algorithm.h"
 
 #include <ns3/log.h>
@@ -38,6 +46,8 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("A2A4RsrqHandoverAlgorithm");
 
 NS_OBJECT_ENSURE_REGISTERED(A2A4RsrqHandoverAlgorithm);
+
+std::map<int, std::set<int>> printableData;
 
 ///////////////////////////////////////////
 // Handover Management SAP forwarder
@@ -174,8 +184,29 @@ A2A4RsrqHandoverAlgorithm::DoReportUeMeas(uint16_t rnti, LteRrcSap::MeasResults 
 } // end of DoReportUeMeas
 
 void
+logCandidateBaseStations()
+{
+    std::ofstream outputFile("/Users/thegeekylad/Desktop/cs298/logs/log-candidate-base-stations.txt");
+
+    if (!outputFile.is_open()) {
+        NS_LOG_WARN("Error opening the file.");
+        return;
+    }
+
+    for (const auto& pair : printableData) {
+        for (int value : pair.second) {
+            outputFile << pair.first << "," << value << std::endl;
+        }
+    }
+
+    outputFile.close();
+    // std::cout << "Data written to the file successfully." << std::endl;
+}
+
+void
 A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRsrq)
 {
+    int currTime = round(Simulator::Now().GetSeconds() / CandidateBaseStations::timeDifference) * CandidateBaseStations::timeDifference;
     // TODO make real use of the candidates
     // std::cout << "The number of candidates is: " << CandidateBaseStations::stationsList.size() << std::endl;
     // NS_LOG_WARN("Time " << Simulator::Now().GetSeconds());
@@ -197,8 +228,18 @@ A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRs
         uint16_t bestNeighbourCellId = 0;
         uint8_t bestNeighbourRsrq = 0;
         MeasurementRow_t::iterator it2;
+
+        // for each neighbor of this cell
         for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
         {
+            // NS_LOG_WARN("Current time: " << currTime);
+            printableData[currTime].insert(it2->first);
+
+            logCandidateBaseStations();
+            NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
+            NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
+            NS_LOG_WARN("");
+
             if ((it2->second->m_rsrq > bestNeighbourRsrq) && IsValidNeighbour(it2->first))
             {
                 bestNeighbourCellId = it2->first;
@@ -280,5 +321,6 @@ A2A4RsrqHandoverAlgorithm::UpdateNeighbourMeasurements(uint16_t rnti, uint16_t c
     }
 
 } // end of UpdateNeighbourMeasurements
+
 
 } // end of namespace ns3
