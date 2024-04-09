@@ -194,8 +194,10 @@ logCandidateBaseStations()
     }
 
     for (const auto& pair : printableData) {
+        std::pair<double, double> vehicleCoordinates = CandidateBaseStations::vehiclePositions[pair.first];
         for (int value : pair.second) {
-            outputFile << pair.first << "," << value << std::endl;
+            std::pair<double, double> baseStationCoordinates = CandidateBaseStations::stationsMap[value];
+            outputFile << pair.first << "," << vehicleCoordinates.first << "," << vehicleCoordinates.second << "," << baseStationCoordinates.first << "," << baseStationCoordinates.second << std::endl;
         }
     }
 
@@ -236,9 +238,9 @@ A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRs
             printableData[currTime].insert(it2->first);
 
             logCandidateBaseStations();
-            NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
-            NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
-            NS_LOG_WARN("");
+            // NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
+            // NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
+            NS_LOG_WARN("Processed a neighbor.");
 
             if ((it2->second->m_rsrq > bestNeighbourRsrq) && IsValidNeighbour(it2->first))
             {
