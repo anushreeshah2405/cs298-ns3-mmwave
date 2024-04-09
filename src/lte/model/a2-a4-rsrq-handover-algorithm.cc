@@ -31,7 +31,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
+#include <random>
 
 #include "a2-a4-rsrq-handover-algorithm.h"
 
@@ -47,7 +49,11 @@ NS_LOG_COMPONENT_DEFINE("A2A4RsrqHandoverAlgorithm");
 
 NS_OBJECT_ENSURE_REGISTERED(A2A4RsrqHandoverAlgorithm);
 
+// vars
 std::map<int, std::set<int>> printableData;
+std::map<int, std::map<int, int>> inputData;
+bool modelConventional = false;
+int lockedUntilTime = -1;
 
 ///////////////////////////////////////////
 // Handover Management SAP forwarder
@@ -183,10 +189,55 @@ A2A4RsrqHandoverAlgorithm::DoReportUeMeas(uint16_t rnti, LteRrcSap::MeasResults 
 
 } // end of DoReportUeMeas
 
+// /Users/thegeekylad/Desktop/cs298/input/input-dwell-time.csv
+
+std::map<int, std::map<int, int>> parseDwellTimeData()  {
+    std::map<int, std::map<int, int>> printableData;
+
+    std::ifstream inputFile("/Users/thegeekylad/Desktop/cs298/input/input-dwell-time.csv");
+
+    if (!inputFile.is_open()) {
+        std::cerr << "Error opening the file." << std::endl;
+        return printableData; // Return empty map if file cannot be opened
+    }
+
+    std::string line;
+    std::string part;
+    while (std::getline(inputFile, line)) {
+        std::istringstream iss(line);
+
+        std::getline(iss, part, ',');
+        int t = std::stoi(part);
+
+        std::getline(iss, part, ',');
+        int baseStationId = std::stoi(part);
+
+        std::getline(iss, part, ',');
+        int dwellTime = static_cast<int>(round(std::stod(part) * 60));
+
+        printableData[t][baseStationId] = dwellTime;
+    }
+
+
+    // Close the file
+    inputFile.close();
+
+    // for (const auto& pair : printableData) {
+    //     int key = pair.first;
+    //     const std::vector<std::pair<int, int>>& pairs = pair.second;
+
+    //     for (const auto& p : pairs) {
+    //         NS_LOG_WARN(key << "," << p.first << "," << p.second << std::endl);
+    //     }
+    // }
+
+    return printableData;
+}
+
 void
 logCandidateBaseStations()
 {
-    std::ofstream outputFile("/Users/thegeekylad/Desktop/cs298/logs/log-candidate-base-stations.txt");
+    std::ofstream outputFile("/Users/thegeekylad/Desktop/cs298/logs/log-candidate-base-stations.csv");
 
     if (!outputFile.is_open()) {
         NS_LOG_WARN("Error opening the file.");
@@ -197,7 +248,8 @@ logCandidateBaseStations()
         std::pair<double, double> vehicleCoordinates = CandidateBaseStations::vehiclePositions[pair.first];
         for (int value : pair.second) {
             std::pair<double, double> baseStationCoordinates = CandidateBaseStations::stationsMap[value];
-            outputFile << pair.first << "," << vehicleCoordinates.first << "," << vehicleCoordinates.second << "," << baseStationCoordinates.first << "," << baseStationCoordinates.second << std::endl;
+            int baseStationId = CandidateBaseStations::indexToIdStationsMap[value];
+            outputFile << pair.first << "," << vehicleCoordinates.first << "," << vehicleCoordinates.second << "," << baseStationCoordinates.first << "," << baseStationCoordinates.second << "," << baseStationId << std::endl;
         }
     }
 
@@ -206,12 +258,41 @@ logCandidateBaseStations()
 }
 
 void
+logHandovers(uint16_t cellId)
+{
+    std::ofstream outputFile("/Users/thegeekylad/Desktop/cs298/logs/log-handovers.txt", std::ios::app);
+
+    if (!outputFile.is_open()) {
+        NS_LOG_WARN("Error opening the file.");
+        return;
+    }
+
+    outputFile << cellId << std::endl;
+
+    outputFile.close();
+    // std::cout << "Data written to the file successfully." << std::endl;
+}
+
+int getRandomNumber(int min, int max) {
+    std::random_device rd;
+    
+    std::mt19937 gen(rd());
+    
+    std::uniform_int_distribution<int> dist(min, max);
+    
+    return dist(gen);
+}
+
+void
 A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRsrq)
 {
     int currTime = round(Simulator::Now().GetSeconds() / CandidateBaseStations::timeDifference) * CandidateBaseStations::timeDifference;
-    // TODO make real use of the candidates
-    // std::cout << "The number of candidates is: " << CandidateBaseStations::stationsList.size() << std::endl;
-    // NS_LOG_WARN("Time " << Simulator::Now().GetSeconds());
+
+    // read input dwell time data
+    if (!modelConventional && inputData.size() == 0) {
+        inputData = parseDwellTimeData();
+        NS_LOG_WARN("Parsed dwell time data!");
+    }
 
     NS_LOG_FUNCTION(this << rnti << (uint16_t)servingCellRsrq);
 
@@ -229,23 +310,34 @@ A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRs
         NS_LOG_LOGIC("Number of neighbour cells = " << it1->second.size());
         uint16_t bestNeighbourCellId = 0;
         uint8_t bestNeighbourRsrq = 0;
+        // int bestDwellTime = 0;
         MeasurementRow_t::iterator it2;
 
         // for each neighbor of this cell
         for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
         {
+            int baseStationId = CandidateBaseStations::indexToIdStationsMap[it2->first];
+            int dwellTime = inputData[currTime][baseStationId];
+
+            if (dwellTime == 0) {
+                inputData[currTime][baseStationId] = dwellTime = getRandomNumber(10, 20);
+            }
+
             // NS_LOG_WARN("Current time: " << currTime);
             printableData[currTime].insert(it2->first);
 
             logCandidateBaseStations();
-            // NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
-            // NS_LOG_WARN("Position: " << CandidateBaseStations::vehiclePositions[currTime].first);
-            NS_LOG_WARN("Processed a neighbor.");
+            NS_LOG_WARN("t = " << currTime << "s");
+            NS_LOG_WARN("Neighbor: " << it2->first);
+            NS_LOG_WARN("Dwell time: " << dwellTime << "s");
+            NS_LOG_WARN("");
 
+            // if ((it2->second->m_rsrq > bestNeighbourRsrq && (!modelConventional ? dwellTime > bestDwellTime : true)) && IsValidNeighbour(it2->first))
             if ((it2->second->m_rsrq > bestNeighbourRsrq) && IsValidNeighbour(it2->first))
             {
                 bestNeighbourCellId = it2->first;
                 bestNeighbourRsrq = it2->second->m_rsrq;
+                // bestDwellTime = dwellTime;
             }
         }
 
@@ -256,12 +348,26 @@ A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRs
 
             if ((bestNeighbourRsrq - servingCellRsrq) >= m_neighbourCellOffset)
             {
-                NS_LOG_WARN("Trigger Handover to cellId " << bestNeighbourCellId);
-                NS_LOG_LOGIC("target cell RSRQ " << (uint16_t)bestNeighbourRsrq);
-                NS_LOG_LOGIC("serving cell RSRQ " << (uint16_t)servingCellRsrq);
+                if (currTime < lockedUntilTime)
+                {
+                    NS_LOG_WARN("Skipping handover: Service cell has enough dwell time");
+                }
+                else
+                {
+                    logHandovers(bestNeighbourCellId);
+                    NS_LOG_WARN("Trigger Handover to cellId " << bestNeighbourCellId);
+                    NS_LOG_LOGIC("target cell RSRQ " << (uint16_t)bestNeighbourRsrq);
+                    NS_LOG_LOGIC("serving cell RSRQ " << (uint16_t)servingCellRsrq);
 
-                // Inform eNodeB RRC about handover
-                m_handoverManagementSapUser->TriggerHandover(rnti, bestNeighbourCellId);
+                    // get this cell's dwell time and add to "t"
+                    if (!modelConventional) {
+                        lockedUntilTime = currTime + inputData[currTime][CandidateBaseStations::indexToIdStationsMap[bestNeighbourCellId]];
+                        NS_LOG_WARN("Latched on until t = " << lockedUntilTime << "s");
+                    }
+
+                    // Inform eNodeB RRC about handover
+                    m_handoverManagementSapUser->TriggerHandover(rnti, bestNeighbourCellId);
+                }
             }
         }
 
