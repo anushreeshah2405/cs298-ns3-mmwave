@@ -110,13 +110,13 @@ main(int argc, char* argv[])
     // LogComponentEnable ("A3RsrpHandoverAlgorithm", logLevel);
 
     uint16_t numberOfUes = 1;
-    uint16_t numberOfEnbs = 51;
+    uint16_t numberOfEnbs = 49;
     uint16_t numBearersPerUe = 0;
     double distance = 500.0;                                        // m
     double yForUe = 500.0;                                          // m
     double speed = 5;                                              // m/s
     // double simTime = (double)(numberOfEnbs + 1) * distance / speed; // 1500 m / 20 m/s = 75 secs
-    double simTime = 60;  // s
+    double simTime = 205;  // s
     double enbTxPowerDbm = 46.0;
 
     // change some default attributes so that they are reasonable for

@@ -52,7 +52,7 @@ NS_OBJECT_ENSURE_REGISTERED(A2A4RsrqHandoverAlgorithm);
 // vars
 std::map<int, std::set<int>> printableData;
 std::map<int, std::map<int, int>> inputData;
-bool modelConventional = false;
+bool modelConventional = true;
 int lockedUntilTime = -1;
 
 ///////////////////////////////////////////
@@ -194,7 +194,7 @@ A2A4RsrqHandoverAlgorithm::DoReportUeMeas(uint16_t rnti, LteRrcSap::MeasResults 
 std::map<int, std::map<int, int>> parseDwellTimeData()  {
     std::map<int, std::map<int, int>> printableData;
 
-    std::ifstream inputFile("/Users/thegeekylad/Desktop/cs298/input/input-dwell-time.csv");
+    std::ifstream inputFile("../../../data/input-dwell-time.csv");
 
     if (!inputFile.is_open()) {
         std::cerr << "Error opening the file." << std::endl;
@@ -237,7 +237,7 @@ std::map<int, std::map<int, int>> parseDwellTimeData()  {
 void
 logCandidateBaseStations()
 {
-    std::ofstream outputFile("/Users/thegeekylad/Desktop/cs298/logs/log-candidate-base-stations.csv");
+    std::ofstream outputFile("data/log-candidate-base-stations.csv");
 
     if (!outputFile.is_open()) {
         NS_LOG_WARN("Error opening the file.");
@@ -260,7 +260,7 @@ logCandidateBaseStations()
 void
 logHandovers(uint16_t cellId)
 {
-    std::ofstream outputFile("/Users/thegeekylad/Desktop/cs298/logs/log-handovers.txt", std::ios::app);
+    std::ofstream outputFile("data/log-handovers.txt", std::ios::app);
 
     if (!outputFile.is_open()) {
         NS_LOG_WARN("Error opening the file.");
