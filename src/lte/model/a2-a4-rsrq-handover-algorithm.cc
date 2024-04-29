@@ -329,7 +329,8 @@ A2A4RsrqHandoverAlgorithm::EvaluateHandover(uint16_t rnti, uint8_t servingCellRs
             logCandidateBaseStations();
             NS_LOG_WARN("t = " << currTime << "s");
             NS_LOG_WARN("Neighbor: " << it2->first);
-            NS_LOG_WARN("Dwell time: " << dwellTime << "s");
+            if (!modelConventional)
+                NS_LOG_WARN("Dwell time: " << dwellTime << "s");
             NS_LOG_WARN("");
 
             // if ((it2->second->m_rsrq > bestNeighbourRsrq && (!modelConventional ? dwellTime > bestDwellTime : true)) && IsValidNeighbour(it2->first))
