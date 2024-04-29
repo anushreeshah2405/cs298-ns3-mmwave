@@ -52,7 +52,7 @@ NS_OBJECT_ENSURE_REGISTERED(A2A4RsrqHandoverAlgorithm);
 // vars
 std::map<int, std::set<int>> printableData;
 std::map<int, std::map<int, int>> inputData;
-bool modelConventional = true;
+bool modelConventional = false;
 int lockedUntilTime = -1;
 
 ///////////////////////////////////////////
@@ -194,7 +194,7 @@ A2A4RsrqHandoverAlgorithm::DoReportUeMeas(uint16_t rnti, LteRrcSap::MeasResults 
 std::map<int, std::map<int, int>> parseDwellTimeData()  {
     std::map<int, std::map<int, int>> printableData;
 
-    std::ifstream inputFile("../../../data/input-dwell-time.csv");
+    std::ifstream inputFile("data/input-dwell-time.csv");
 
     if (!inputFile.is_open()) {
         std::cerr << "Error opening the file." << std::endl;
